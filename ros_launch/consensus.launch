@@ -1,0 +1,23 @@
+<launch>
+  <!-- 
+     pkg="mypackage" Package of node. 
+    type="nodetype"  There must be a corresponding executable with the same name. 
+    name="nodename"  Note: Name cannot contain a namespace. Use the ns attribute instead.
+  -->
+
+  <!-- RViz -->
+  <!-- <node pkg="rviz" type="rviz" name="rviz_crazy" args="-d /home/patrick/uva/ros/rviz_config/crazy_sim.rviz"/> -->
+  
+  <!-- Static Frame -->
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="origin_broadcaster" 
+                                                args="0 0 0 0 0 0 1 world origin_frame"/> -->
+
+  <!-- Joy Node -->
+  <node respawn="true" pkg="joy" type="joy_node" name="joy" >
+    <param name="dev" type="string" value="/dev/input/js0" />
+  </node>
+
+  <!-- Consensus Node -->
+  <node pkg="amrl_consensus" type="consensus_node" name="consensus_node" output="screen" />
+  
+</launch>
