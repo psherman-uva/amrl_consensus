@@ -15,10 +15,10 @@ const Eigen::Matrix<double, 0, 1> FormationConsensus::kU0(Eigen::Matrix<double, 
 
 
 
-FormationConsensus(void)
-{
+// FormationConsensus(void)
+// {
 
-}
+// }
 
 FormationConsensus::FormationConsensus(
   const R_t &r_init, const std::vector<std::pair<int, int>> &conns) : 

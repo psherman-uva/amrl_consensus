@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   std_msgs
   geometry_msgs
-  amrl_display
   amrl_logging
   amrl_common
 )

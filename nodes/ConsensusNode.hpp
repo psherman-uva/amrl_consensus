@@ -12,39 +12,40 @@
 
 namespace amrl {
 
-  class ConsensusNode {
-  public:
-    /// Constructor
-    ConsensusNode(void);
+class ConsensusNode
+{
+public:
+  /// Constructor
+  ConsensusNode(void);
 
-    /// Default Constructor
-    ~ConsensusNode(void) = default;
+  /// Default Constructor
+  ~ConsensusNode(void) = default;
 
-  private:
+private:
 
-    void control_callback(const ros::TimerEvent&);
+  void control_callback(const ros::TimerEvent&);
 
-    void joy_callback(const sensor_msgs::Joy::ConstPtr &msg);
-    
-    // ROS Object
-    ros::NodeHandle _nh;
+  void joy_callback(const sensor_msgs::Joy::ConstPtr &msg);
+  
+  // ROS Object
+  ros::NodeHandle _nh;
 
-    // Subscribe to joystick object
-    ros::Subscriber _joy_sub;
+  // Subscribe to joystick object
+  ros::Subscriber _joy_sub;
 
-    // Timer for control loop
-    ros::Timer _tmr;
+  // Timer for control loop
+  ros::Timer _tmr;
 
-    // Custom wrapper for using joystick
-    Joystick _js;
+  // Custom wrapper for using joystick
+  Joystick _js;
 
-    // Formation control
-    FormationConsensus _consensus;
+  // Formation control
+  // FormationConsensus _consensus;
 
 
-    bool _active;
+  bool _active;
 
-    static constexpr double kLoopPeriod_s = 0.5;
-  };
+  static constexpr double kLoopPeriod_s = 0.5;
+};
 
 }
