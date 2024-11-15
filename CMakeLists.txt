@@ -66,6 +66,6 @@ include_directories(
 ## Project directories ##
 #########################
 
-add_subdirectory(libs)
+add_subdirectory(libs)  
 add_subdirectory(nodes)
 

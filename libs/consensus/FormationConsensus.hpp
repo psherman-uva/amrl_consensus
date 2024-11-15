@@ -9,85 +9,89 @@
 #pragma once
 
 #include <Eigen/Dense>
-#include <amrl_common/ode_solver/RungeKutta.hpp>
+#include <libs/runge_kutta/RungeKutta.hpp>
 
-namespace amrl {
-
-class FormationConsensus
+namespace amrl
 {
-public:
-  // using R_t = Eigen::Matrix<double, 8, 1>;
-  // using V_t = Eigen::Matrix<double, 8, 1>;
-  // using A_t = Eigen::Matrix<double, 8, 1>;
-  // using X_t = Eigen::Matrix<double, 16, 1>;
 
-  /// Constructor
-  /// @param x0 Initial information state
-  /// @param conns Connections between robots in multi-robot system
-  FormationConsensus(const Eigen::VectorXd &r_init, const std::vector<std::pair<int, int>> &conns);
+  class FormationConsensus
+  {
+  public:
+    // using R_t = Eigen::Matrix<double, 8, 1>;
+    // using V_t = Eigen::Matrix<double, 8, 1>;
+    // using A_t = Eigen::Matrix<double, 8, 1>;
+    // using X_t = Eigen::Matrix<double, 16, 1>;
 
-  /// Default constructor
-  // FormationConsensus(void);
+    /// Constructor
+    /// @param x0 Initial information state
+    /// @param conns Connections between robots in multi-robot system
+    FormationConsensus(
+        const uint8_t num_agents,
+        const uint8_t num_inputs,
+        const Eigen::VectorXd &r_init,
+        const std::vector<std::pair<int, int>> &conns);
 
-  // Default destructor
-  ~FormationConsensus(void) = default;
+    /// Default constructor
+    // FormationConsensus(void);
 
-  Eigen::VectorXd control_update(
-    const Eigen::VectorXd &r, 
-    const Eigen::VectorXd &v, 
-    const Eigen::VectorXd &a, 
-    const double dt);
+    // Default destructor
+    ~FormationConsensus(void) = default;
 
-  Eigen::VectorXd center(void) const;
+    Eigen::VectorXd control_update(
+        const Eigen::VectorXd &r,
+        const Eigen::VectorXd &v,
+        const Eigen::VectorXd &a,
+        const double dt);
 
-private:
+    Eigen::VectorXd center(void) const;
 
-  Eigen::VectorXd x_dot(const Eigen::VectorXd &x, const Eigen::Matrix<double, 0, 1> &u) const;
-  void update_sub_states(void);
+  private:
+    Eigen::VectorXd x_dot(const Eigen::VectorXd &x, const Eigen::Matrix<double, 0, 1> &u) const;
+    void update_sub_states(void);
 
-  // ---------------------------------- //
-  // ------ End of Class Methods ------ //
-  // ---------------------------------- //
+    // ---------------------------------- //
+    // ------ End of Class Methods ------ //
+    // ---------------------------------- //
 
-  double _t;  // Simulation Time
+    double _t; // Simulation Time
 
-  Eigen::VectorXd _x;       // Full information state [xi, zeta]'
-  Eigen::VectorXd _xi;      // Xi   = r_i - r_iF
-  Eigen::VectorXd _zeta;    // Zeta = v_i - r'_iF
-  Eigen::VectorXd _rdot_F;  // r_iF dot
-  Eigen::VectorXd _rddot_F; // r_iF double-dot
+    Eigen::VectorXd _x;       ///< Full information state [xi, zeta]'
+    Eigen::VectorXd _xi;      ///< Xi   = r_i - r_iF
+    Eigen::VectorXd _zeta;    ///< Zeta = v_i - r'_iF
+    Eigen::VectorXd _rdot_F;  ///< r_iF dot
+    Eigen::VectorXd _rddot_F; ///< r_iF double-dot
 
-  Eigen::MatrixXd _L;     ///< Laplacian
-  Eigen::MatrixXd _sig; 
-  Eigen::MatrixXd _Sigma;
-  
-  // X_t _x;        // Full information state [xi, zeta]'
-  // R_t _xi;       // Xi   = r_i - r_iF
-  // V_t _zeta;     // Zeta = v_i - r'_iF
-  // V_t _rdot_F;  // r_iF dot
-  // A_t _rddot_F; // r_iF double-dot
+    Eigen::MatrixXd _L; ///< Laplacian
+    Eigen::MatrixXd _sig;
+    Eigen::MatrixXd _Sigma;
 
-  // Eigen::Matrix<double, 4, 4>   _L;     ///< Laplacian
-  // Eigen::Matrix<double, 8, 8>   _sig; 
-  // Eigen::Matrix<double, 16, 16> _Sigma;
-  
+    // X_t _x;        // Full information state [xi, zeta]'
+    // R_t _xi;       // Xi   = r_i - r_iF
+    // V_t _zeta;     // Zeta = v_i - r'_iF
+    // V_t _rdot_F;  // r_iF dot
+    // A_t _rddot_F; // r_iF double-dot
 
-  const uint8_t _n = 4;
-  static const Eigen::MatrixXd In;
-  
-  static constexpr int _m = 3;
-  static const Eigen::Matrix<double, _m, _m> Im;
+    // Eigen::Matrix<double, 4, 4>   _L;     ///< Laplacian
+    // Eigen::Matrix<double, 8, 8>   _sig;
+    // Eigen::Matrix<double, 16, 16> _Sigma;
 
-  static constexpr double kGamma = 2.5;
-  static constexpr double kAlpha = 1.5;
+    const uint8_t _num_agents;
 
-  static const Eigen::VectorXd r_iF;
+    const uint8_t _n; // = 4;
+    Eigen::MatrixXd In;
 
-  static const Eigen::Matrix<double, 0, 1> kU0;
+    static uint8_t _m; // = 3;
+    Eigen::MatrixXd Im;
 
-  /// ODE Solver for system
-  RungeKutta<16, 0> _solver;
-};
+    static constexpr double kGamma = 2.5;
+    static constexpr double kAlpha = 1.5;
 
+    static const Eigen::VectorXd r_iF;
+
+    static const Eigen::Matrix<double, 0, 1> kU0;
+
+    /// ODE Solver for system
+    // RungeKutta<16, 0> _solver;
+  };
 
 }

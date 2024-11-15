@@ -8,6 +8,7 @@ const FormationConsensus::R_t FormationConsensus::r_iF(
 
 const Eigen::Matrix<double, FormationConsensus::_n, FormationConsensus::_n> FormationConsensus::In(
   Eigen::Matrix<double, FormationConsensus::_n, FormationConsensus::_n>::Identity());
+  
 const Eigen::Matrix<double, FormationConsensus::_m, FormationConsensus::_m> FormationConsensus::Im(
   Eigen::Matrix<double, FormationConsensus::_m, FormationConsensus::_m>::Identity());
 
@@ -21,7 +22,10 @@ const Eigen::Matrix<double, 0, 1> FormationConsensus::kU0(Eigen::Matrix<double, 
 // }
 
 FormationConsensus::FormationConsensus(
-  const R_t &r_init, const std::vector<std::pair<int, int>> &conns) : 
+    const uint8_t num_states,
+    const uint8_t num_inputs,
+    const Eigen::VectorXd &r_init, 
+    const std::vector<std::pair<int, int>> &conns) : 
 _t(0.0),
 _x(X_t::Zero()),
 _xi(R_t::Zero()),
@@ -30,9 +34,9 @@ _rdot_F(V_t::Zero()),
 _rddot_F(A_t::Zero()),
 _L(Eigen::Matrix<double, 4, 4>::Zero()),
 _sig(Eigen::Matrix<double, 8, 8>::Zero()),
-_Sigma(Eigen::Matrix<double, 16, 16>::Zero()),
-_solver([&](const X_t &x0, const Eigen::Matrix<double, 0, 1> &u) { return this->x_dot(x0, u); },
-  RungeKutta<16, 0>::SolverType::kFourthOrderOptimal)
+_Sigma(Eigen::Matrix<double, 16, 16>::Zero())
+// _solver([&](const X_t &x0, const Eigen::Matrix<double, 0, 1> &u) { return this->x_dot(x0, u); },
+//   RungeKutta<16, 0>::SolverType::kFourthOrderOptimal)
 {
   for (const auto &c : conns) {
     _L(c.second, c.first) = -2.0;
@@ -80,7 +84,7 @@ Eigen::Matrix<double, 8, 1> FormationConsensus::control_update(
   X_t x_dot = _Sigma*_x;
   Eigen::Matrix<double, 8, 1> xi_dot   = x_dot(Eigen::seqN(0, 8));
   Eigen::Matrix<double, 8, 1> zeta_dot = x_dot(Eigen::seqN(8, 8));
-  Eigen::Matrix<double, 8, 1> u = zeta_dot + _rddot_F;
+  Eigen::Matrix<double, 8, 1> u        = zeta_dot + _rddot_F;
 
   return u;
 }

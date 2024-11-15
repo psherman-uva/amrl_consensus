@@ -7,10 +7,11 @@
 
   <!-- RViz -->
   <!-- <node pkg="rviz" type="rviz" name="rviz_crazy" args="-d /home/patrick/uva/ros/rviz_config/crazy_sim.rviz"/> -->
+  <node pkg="rviz" type="rviz" name="rviz_formation" args="-d /home/patrick/uva/ros/rviz_config/consensus.rviz"/>
   
   <!-- Static Frame -->
-  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="origin_broadcaster" 
-                                                args="0 0 0 0 0 0 1 world origin_frame"/> -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="origin_broadcaster" 
+                                                args="0 0 0 0 0 0 1 world origin_frame"/>
 
   <!-- Joy Node -->
   <node respawn="true" pkg="joy" type="joy_node" name="joy" >
@@ -19,5 +20,6 @@
 
   <!-- Consensus Node -->
   <node pkg="amrl_consensus" type="consensus_node" name="consensus_node" output="screen" />
+  <node pkg="amrl_consensus" type="simulation_node" name="simulation_node" output="screen" />
   
 </launch>
