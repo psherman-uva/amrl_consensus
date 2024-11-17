@@ -17,18 +17,17 @@ namespace amrl
   class FormationConsensus
   {
   public:
-    // using R_t = Eigen::Matrix<double, 8, 1>;
-    // using V_t = Eigen::Matrix<double, 8, 1>;
-    // using A_t = Eigen::Matrix<double, 8, 1>;
-    // using X_t = Eigen::Matrix<double, 16, 1>;
+    /// Convenience aliases
+    using Vec_t = Eigen::VectorXd;
+    using Mat_t = Eigen::MatrixXd;
 
     /// Constructor
     /// @param x0 Initial information state
     /// @param conns Connections between robots in multi-robot system
     FormationConsensus(
-        const uint8_t num_agents,
-        const uint8_t num_inputs,
-        const Eigen::VectorXd &r_init,
+        const uint8_t num_robots,
+        const uint8_t num_states,
+        const Vec_t &r_init,
         const std::vector<std::pair<int, int>> &conns);
 
     /// Default constructor
@@ -37,56 +36,42 @@ namespace amrl
     // Default destructor
     ~FormationConsensus(void) = default;
 
-    Eigen::VectorXd control_update(
-        const Eigen::VectorXd &r,
-        const Eigen::VectorXd &v,
-        const Eigen::VectorXd &a,
+    Vec_t control_update(
+        const Vec_t &r,
+        const Vec_t &v,
+        const Vec_t &a,
         const double dt);
 
-    Eigen::VectorXd center(void) const;
+    Vec_t center(void) const;
 
   private:
-    Eigen::VectorXd x_dot(const Eigen::VectorXd &x, const Eigen::Matrix<double, 0, 1> &u) const;
     void update_sub_states(void);
+    Vec_t x_dot(const Vec_t &x, const Eigen::Matrix<double, 0, 1> &u) const;
 
     // ---------------------------------- //
     // ------ End of Class Methods ------ //
     // ---------------------------------- //
 
     double _t; // Simulation Time
+    const uint8_t _n;  // Number of robots
+    const uint8_t _m;  // Number of states (e.g. x,y,z => 3)
+    const uint8_t _nm; // Number of robots * number of states
 
-    Eigen::VectorXd _x;       ///< Full information state [xi, zeta]'
-    Eigen::VectorXd _xi;      ///< Xi   = r_i - r_iF
-    Eigen::VectorXd _zeta;    ///< Zeta = v_i - r'_iF
-    Eigen::VectorXd _rdot_F;  ///< r_iF dot
-    Eigen::VectorXd _rddot_F; ///< r_iF double-dot
+    Vec_t _x;       ///< Full information state [xi, zeta]'
+    Vec_t _xi;      ///< Xi   = r_i - r_iF
+    Vec_t _zeta;    ///< Zeta = v_i - r'_iF
+    Vec_t _rdot_F;  ///< r_iF dot
+    Vec_t _rddot_F; ///< r_iF double-dot
 
-    Eigen::MatrixXd _L; ///< Laplacian
-    Eigen::MatrixXd _sig;
-    Eigen::MatrixXd _Sigma;
+    Mat_t _L; ///< Laplacian
+    Mat_t _sig;
+    Mat_t _Sigma;
 
-    // X_t _x;        // Full information state [xi, zeta]'
-    // R_t _xi;       // Xi   = r_i - r_iF
-    // V_t _zeta;     // Zeta = v_i - r'_iF
-    // V_t _rdot_F;  // r_iF dot
-    // A_t _rddot_F; // r_iF double-dot
-
-    // Eigen::Matrix<double, 4, 4>   _L;     ///< Laplacian
-    // Eigen::Matrix<double, 8, 8>   _sig;
-    // Eigen::Matrix<double, 16, 16> _Sigma;
-
-    const uint8_t _num_agents;
-
-    const uint8_t _n; // = 4;
-    Eigen::MatrixXd In;
-
-    static uint8_t _m; // = 3;
-    Eigen::MatrixXd Im;
+    Mat_t _In;
+    Mat_t _Im;
 
     static constexpr double kGamma = 2.5;
     static constexpr double kAlpha = 1.5;
-
-    static const Eigen::VectorXd r_iF;
 
     static const Eigen::Matrix<double, 0, 1> kU0;
 

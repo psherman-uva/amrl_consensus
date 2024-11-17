@@ -4,6 +4,7 @@ add_executable(consensus_node
   src/ConsensusNode.cpp)
 target_link_libraries(consensus_node
 robot_interface
+amrl_consensus
 amrl_formation_display
 amrl_joystick
 ${catkin_LIBRARIES})

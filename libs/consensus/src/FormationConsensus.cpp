@@ -3,14 +3,8 @@
 
 namespace amrl {
 
-const FormationConsensus::R_t FormationConsensus::r_iF(
-  { -1.5,  0.0,  0.0,  1.5, 1.5,  0.0,  0.0, -1.5});
-
-const Eigen::Matrix<double, FormationConsensus::_n, FormationConsensus::_n> FormationConsensus::In(
-  Eigen::Matrix<double, FormationConsensus::_n, FormationConsensus::_n>::Identity());
-  
-const Eigen::Matrix<double, FormationConsensus::_m, FormationConsensus::_m> FormationConsensus::Im(
-  Eigen::Matrix<double, FormationConsensus::_m, FormationConsensus::_m>::Identity());
+// const FormationConsensus::Vec_t FormationConsensus::r_iF(
+//   { -1.5,  0.0,  0.0,  1.5, 1.5,  0.0,  0.0, -1.5});
 
 const Eigen::Matrix<double, 0, 1> FormationConsensus::kU0(Eigen::Matrix<double, 0, 1>::Zero());
 
@@ -22,79 +16,84 @@ const Eigen::Matrix<double, 0, 1> FormationConsensus::kU0(Eigen::Matrix<double, 
 // }
 
 FormationConsensus::FormationConsensus(
+    const uint8_t num_robots,
     const uint8_t num_states,
-    const uint8_t num_inputs,
-    const Eigen::VectorXd &r_init, 
-    const std::vector<std::pair<int, int>> &conns) : 
+    const Vec_t &r_init, 
+    const std::vector<std::pair<int, int>> &conns) 
+: 
 _t(0.0),
-_x(X_t::Zero()),
-_xi(R_t::Zero()),
-_zeta(V_t::Zero()),
-_rdot_F(V_t::Zero()),
-_rddot_F(A_t::Zero()),
-_L(Eigen::Matrix<double, 4, 4>::Zero()),
-_sig(Eigen::Matrix<double, 8, 8>::Zero()),
-_Sigma(Eigen::Matrix<double, 16, 16>::Zero())
-// _solver([&](const X_t &x0, const Eigen::Matrix<double, 0, 1> &u) { return this->x_dot(x0, u); },
+_n(num_robots),
+_m(num_states),
+_nm(num_robots * num_states),
+_x(Vec_t::Zero(_nm * 2)),
+_xi(Vec_t::Zero(_nm)),
+_zeta(Vec_t::Zero(_nm)),
+_rdot_F(Vec_t::Zero(_nm)),
+_rddot_F(Vec_t::Zero(_nm)),
+_L(Mat_t::Zero(_n, _n)),
+_sig(Mat_t::Zero(2*_n, 2*_n)),
+_Sigma(Mat_t::Zero(_nm * 2, _nm * 2)),
+_In(Mat_t::Identity(_n, _n)),
+_Im(Mat_t::Identity(_m, _m))
+// _solver([&](const Vec_t &x0, const Eigen::Matrix<double, 0, 1> &u) { return this->x_dot(x0, u); },
 //   RungeKutta<16, 0>::SolverType::kFourthOrderOptimal)
 {
-  for (const auto &c : conns) {
-    _L(c.second, c.first) = -2.0;
+  // for (const auto &c : conns) {
+  //   _L(c.second, c.first) = -2.0;
+  // }
+
+  for(size_t i = 0; i < _n; ++i) {
+    _L(i,i) = -_L.row(i).sum();
   }
 
-  _L(0,0) = -_L.row(0).sum();
-  _L(1,1) = -_L.row(1).sum();
-  _L(2,2) = -_L.row(2).sum();
-  _L(3,3) = -_L.row(3).sum();
-
-  _sig(Eigen::seqN(0,_n), Eigen::seqN(_n,_n))  = In;
+  _sig(Eigen::seqN(0,_n), Eigen::seqN(_n,_n))  = _In;
   _sig(Eigen::seqN(_n,_n), Eigen::seqN(0,_n))  = -_L;
-  _sig(Eigen::seqN(_n,_n), Eigen::seqN(_n,_n)) = -(kAlpha*In) -(kGamma*_L);
+  _sig(Eigen::seqN(_n,_n), Eigen::seqN(_n,_n)) = -(kAlpha*_In) -(kGamma*_L);
 
-  for (int i = 0; i < 8; ++i) {
-    for (int j = 0; j < 8; ++j) {
-      _Sigma(Eigen::seqN(i*2,_m), Eigen::seqN(j*2,_m)) = _sig(i,j)*Im;
-    }
-  }
+  // for (int i = 0; i < _; ++i) {
+  //   for (int j = 0; j < 8; ++j) {
+  //     _Sigma(Eigen::seqN(i*2,_m), Eigen::seqN(j*2,_m)) = _sig(i,j)*_Im;
+  //   }
+  // }
 
-  // Initialize Xi (Zeta(0) is all zeros)
-  for (int i = 0; i < 4; ++i) {
-    _x(Eigen::seqN(i*2,_m)) = r_init(Eigen::seqN(i*2,_m)) - r_iF(Eigen::seqN(i*2,_m));
-  }
-  update_sub_states();
+  // // Initialize Xi (Zeta(0) is all zeros)
+  // for (int i = 0; i < 4; ++i) {
+  //   _x(Eigen::seqN(i*2,_m)) = r_init(Eigen::seqN(i*2,_m)) - r_iF(Eigen::seqN(i*2,_m));
+  // }
+  // update_sub_states();
 }
 
 void FormationConsensus::update_sub_states(void)
 {
-  _xi   = _x(Eigen::seqN(0, 8));
-  _zeta = _x(Eigen::seqN(8, 8));
+  _xi   = _x(Eigen::seqN(0, _n*_m));
+  _zeta = _x(Eigen::seqN(_n*_m, _n*_m));
 }
 
-Eigen::Matrix<double, 8, 1> FormationConsensus::control_update(
-  const R_t &r, 
-  const V_t &v,
-  const A_t &a,
+FormationConsensus::Vec_t FormationConsensus::control_update(
+  const Vec_t &r, 
+  const Vec_t &v,
+  const Vec_t &a,
   const double dt)
 {
-  // Reinitialize _x with updated robot information
-  _x(Eigen::seqN(0, 8)) = r - r_iF;     // Xi(0)
-  _x(Eigen::seqN(8, 8)) = v - _rdot_F;  // Zeta(0)
-  update_sub_states();
+  // // Reinitialize _x with updated robot information
+  // _x(Eigen::seqN(0, 8)) = r - r_iF;     // Xi(0)
+  // _x(Eigen::seqN(8, 8)) = v - _rdot_F;  // Zeta(0)
+  // update_sub_states();
 
-  X_t x_dot = _Sigma*_x;
-  Eigen::Matrix<double, 8, 1> xi_dot   = x_dot(Eigen::seqN(0, 8));
-  Eigen::Matrix<double, 8, 1> zeta_dot = x_dot(Eigen::seqN(8, 8));
-  Eigen::Matrix<double, 8, 1> u        = zeta_dot + _rddot_F;
-
+  // Vec_t x_dot = _Sigma*_x;
+  // Eigen::Matrix<double, 8, 1> xi_dot   = x_dot(Eigen::seqN(0, 8));
+  // Eigen::Matrix<double, 8, 1> zeta_dot = x_dot(Eigen::seqN(8, 8));
+  // Eigen::Matrix<double, 8, 1> u        = zeta_dot + _rddot_F;
+  Vec_t u = Vec_t::Zero(_n);
   return u;
 }
 
-FormationConsensus::R_t FormationConsensus::center(void) const
+FormationConsensus::Vec_t FormationConsensus::center(void) const
 {
   return _xi;
 }
 
-FormationConsensus::X_t FormationConsensus::x_dot(const X_t &x, const Eigen::Matrix<double, 0, 1> &u) const
+FormationConsensus::Vec_t FormationConsensus::x_dot(const Vec_t &x, const Eigen::Matrix<double, 0, 1> &u) const
 {
   return _Sigma*x;
 }

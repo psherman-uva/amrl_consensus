@@ -1,5 +1,5 @@
 
-# add_subdirectory(consensus)
+add_subdirectory(consensus)
 add_subdirectory(display)
 add_subdirectory(interface)
 add_subdirectory(formation)
