@@ -1,12 +1,13 @@
 <launch>
-  <!-- 
-     pkg="mypackage" Package of node. 
-    type="nodetype"  There must be a corresponding executable with the same name. 
-    name="nodename"  Note: Name cannot contain a namespace. Use the ns attribute instead.
-  -->
+  <!-- Parameters from config file -->
+  <rosparam file="$(find amrl_consensus)/config/project_params.yaml" />
+
+  <!-- Logging node -->
+  <include file="$(find amrl_logging)/ros_launch/logging.launch">
+    <arg name="db_filename" value="/home/patrick/uva/data/ConsensusProject.db" />
+  </include>
 
   <!-- RViz -->
-  <!-- <node pkg="rviz" type="rviz" name="rviz_crazy" args="-d /home/patrick/uva/ros/rviz_config/crazy_sim.rviz"/> -->
   <node pkg="rviz" type="rviz" name="rviz_formation" args="-d /home/patrick/uva/ros/rviz_config/consensus.rviz"/>
   
   <!-- Static Frame -->

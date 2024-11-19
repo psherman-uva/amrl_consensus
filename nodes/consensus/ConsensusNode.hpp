@@ -4,6 +4,7 @@
 // #include <libs/consensus/FormationConsensus.hpp>
 #include <libs/display/DisplayFormation.hpp>
 #include <libs/interface/RobotInterface.hpp>
+#include <libs/logging/ConsensusLogging.hpp>
 
 #include <amrl_common/joystick/Joystick.hpp>
 
@@ -59,6 +60,10 @@ private:
   // Interface between consensus node and real robots
   std::vector<std::shared_ptr<RobotInterface>> _rbt_inter;
 
+  // Logging Object [nullptr if logging not needed]
+  std::shared_ptr<ConsensusLogging> _logger;
+  bool _logging_enabled;
+
   // RViz Display
   DisplayFormation _display;
 
@@ -68,7 +73,7 @@ private:
   bool _active;
 
   static constexpr double kLoopPeriod_s    = 0.2;
-  static constexpr double kCmdLoopPeriod_s = 0.05;
+  static constexpr double kCmdLoopPeriod_s = 1.0; // 0.05;
 };
 
 }

@@ -1,0 +1,5 @@
+
+logging:
+  active: true
+  table: "DebugTable"
+  drop_table: true

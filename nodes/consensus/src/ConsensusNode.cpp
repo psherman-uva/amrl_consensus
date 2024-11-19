@@ -10,7 +10,8 @@ ConsensusNode::ConsensusNode(void)
   : _js(_nh),
   _display(_nh, "origin_frame", "formation", "agents"),
   _num_robots(4),
-  _active(false)
+  _active(false),
+  _logger(nullptr)
 {
   boost::function<void(const sensor_msgs::Joy::ConstPtr&)> joy_cb = boost::bind(&ConsensusNode::joy_callback, this, _1);
   _js.subscribe_custom_callback(_nh, joy_cb, "/joy");
@@ -26,7 +27,11 @@ ConsensusNode::ConsensusNode(void)
 
 void ConsensusNode::control_loop_callback(const ros::TimerEvent&)
 {
-
+  for(uint32_t i = 0; i < _num_robots; ++i) {
+    Eigen::Vector3d pos = _rbt_inter[i]->pose_get();
+    if(_logging_enabled) { _logger->update_robot_position(i, pos); }
+  }
+  if(_logging_enabled) { _logger->publish(); }
 }
 
 void ConsensusNode::display_loop_callback(const ros::TimerEvent&)
@@ -50,27 +55,34 @@ void ConsensusNode::display_loop_callback(const ros::TimerEvent&)
 
 void ConsensusNode::setup(const ros::TimerEvent&)
 { 
+  bool logging_active = _nh.param<bool>("/logging/active", false);
+  if (logging_active && !_logging_enabled) {
+    _logger = std::make_shared<ConsensusLogging>(_nh);
+    _logging_enabled = _logger->setup(_num_robots);
+    ROS_INFO("Logger Enabled");
+  }
+
   if(std::all_of(_rbt_inter.begin(), _rbt_inter.end(), 
     [](const std::shared_ptr<RobotInterface> &ri) { return ri->pose_ready(); })) {
     
     Eigen::Vector3d pos0 = _rbt_inter[0]->pose_get();
     Eigen::Vector3d form0({0.4, 0.0, 0.9});
-    std::array<float, 3> clr0({1.0, 0.2, 0.4});
+    std::array<float, 3> clr0({0.89, 0.10, 0.11});
     _display.add_markers(pos0, form0, clr0);
 
     Eigen::Vector3d pos1 = _rbt_inter[1]->pose_get();
     Eigen::Vector3d form1({0.0, 0.4, 1.1});
-    std::array<float, 3> clr1({0.2, 0.7, 0.3});
+    std::array<float, 3> clr1({0.22, 0.50, 0.72});
     _display.add_markers(pos1, form1, clr1);
 
     Eigen::Vector3d pos2 = _rbt_inter[2]->pose_get();
     Eigen::Vector3d form2({-0.4, 0.0, 0.7});
-    std::array<float, 3> clr2({0.0, 0.4, 0.9});
+    std::array<float, 3> clr2({0.30, 0.69, 0.29});
     _display.add_markers(pos2, form2, clr2);
 
     Eigen::Vector3d pos3 = _rbt_inter[3]->pose_get();
     Eigen::Vector3d form3({0.0, -0.4, 1.4});
-    std::array<float, 3> clr3({0.9, 0.5, 0.2});
+    std::array<float, 3> clr3({0.60, 0.31, 0.64});
     _display.add_markers(pos3, form3, clr3);
 
     _setup_tmr.stop();
