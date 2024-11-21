@@ -23,7 +23,6 @@ def get_data():
     sql_cmd = f"SELECT * FROM {DbTable}"
     return read_data_from_database(DbFilename, sql_cmd)
 
-
 def robot_pose_plot(data):
     fig = plt.figure(layout='constrained', dpi=200)
     fig.set_size_inches(5.0, 4.5)
@@ -46,12 +45,34 @@ def robot_pose_plot(data):
     ax2.legend(["$robot_1$", "$robot_2$","$robot_3$","$robot_4$"])
 
 
+def formation_center_plot(data):
+    fig = plt.figure(layout='constrained', dpi=200)
+    fig.set_size_inches(5.0, 4.5)
+    gs = GridSpec(2, 1, figure=fig)
+
+    ax1 = fig.add_subplot(gs[0])
+    ax1.set_title("Pose (x)")
+    for i in range(4):
+        ax1.plot(data["idx"], data[f"Fx{i}"], color=ClrMap[i])
+    ax1.set_xlabel("$t_k$")
+    ax1.set_ylabel("$x$", rotation=0)
+    ax1.legend(["$robot_1$", "$robot_2$","$robot_3$","$robot_4$"])
+
+    ax2 = fig.add_subplot(gs[1])
+    ax2.set_title("Pose (y)")
+    for i in range(4):
+        ax2.plot(data["idx"], data[f"Fy{i}"], color=ClrMap[i])
+    ax2.set_xlabel("$t_k$")
+    ax2.set_ylabel("$y$", rotation=0)
+    ax2.legend(["$robot_1$", "$robot_2$","$robot_3$","$robot_4$"])
+
+
 def robot_XY(data):
     fig = plt.figure(layout='constrained', dpi=200)
     fig.set_size_inches(5.0, 4.5)
 
     ax1 = fig.add_subplot()
-    ax1.set_title("Robot Trajectory")
+    ax1.set_title("Formation Center")
     for i in range(4):
         ax1.plot(data[f"x{i}"], data[f"y{i}"], "o", color=ClrMap[i])
     ax1.set_xlabel("$X$")
@@ -62,7 +83,7 @@ def robot_XY(data):
 def main():
     data = get_data()
 
-    robot_XY(data)
+    formation_center_plot(data)
 
     plt.show()
 

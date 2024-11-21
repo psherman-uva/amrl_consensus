@@ -1,5 +1,8 @@
 
 logging:
-  active: true
+  enabled: true
   table: "DebugTable"
   drop_table: true
+
+display:
+  enabled: true

@@ -21,22 +21,23 @@ class DisplayFormation
 {
 public:
 
-  DisplayFormation(ros::NodeHandle &nh, 
-    const std::string &frame_id, 
-    const std::string &marker_ns,
+  DisplayFormation(
+    ros::NodeHandle &nh, 
+    const std::string &frame_id,
     const std::string &pub_namespace);
 
   ~DisplayFormation(void) = default;
 
-  uint32_t add_markers(
+  void add_markers(
+    uint32_t idx,
     const Eigen::Vector3d &rbt_pos,
     const Eigen::Vector3d &formation_pos,
     const std::array<float, 3> &bdy_clr);
 
   void update_markers(
+    uint32_t idx,
     const Eigen::Vector3d &rbt_pos,
-    const Eigen::Vector3d &formation_pos,
-    uint32_t idx);
+    const Eigen::Vector3d &formation_pos);
 
   void publish_markers(void);
 
@@ -44,14 +45,12 @@ private:
 
   ros::NodeHandle _nh;
   std::string _frame_id;
-  std::string _marker_ns;
   std::string _pub_namespace;
 
   // RViz visualization of robot body
-  std::vector<visualization_msgs::Marker> _markers;
+  std::vector<visualization_msgs::Marker> _rbt_markers;
+  std::vector<visualization_msgs::Marker> _frm_markers;
   ros::Publisher _rviz_pub;
-
-  
 
 };
 

@@ -1,7 +1,7 @@
 
 #pragma once
 
-// #include <libs/consensus/FormationConsensus.hpp>
+#include <libs/formation/FormationSupervisor.hpp>
 #include <libs/display/DisplayFormation.hpp>
 #include <libs/interface/RobotInterface.hpp>
 #include <libs/logging/ConsensusLogging.hpp>
@@ -54,19 +54,22 @@ private:
   // Custom wrapper for using joystick
   Joystick _js;
 
-  // Formation control
-  // FormationConsensus _consensus;
+  // Formation definition
+  std::shared_ptr<FormationSupervisor> _formation;
 
   // Interface between consensus node and real robots
   std::vector<std::shared_ptr<RobotInterface>> _rbt_inter;
+  bool _rbt_setup_done;
 
   // Logging Object [nullptr if logging not needed]
   std::shared_ptr<ConsensusLogging> _logger;
   bool _logging_enabled;
+  bool _logging_setup_done;
 
   // RViz Display
-  DisplayFormation _display;
-
+  std::shared_ptr<DisplayFormation> _display;
+  std::vector<std::array<float, 3>> _display_clrs;
+  bool _display_enabled;
 
   ros::Time _start_time;
   uint8_t _num_robots;

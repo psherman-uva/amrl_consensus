@@ -17,7 +17,6 @@ bool ConsensusLogging::setup(const uint32_t num_robots)
   bool drop_table = _nh.param<bool>("/logging/drop_table", true);
   _table          = _nh.param<std::string>("/logging/table", "");
 
-
   if(_table.empty() || (drop_table && !amrl::logging_delete_table(_nh, _table))) { return false; }
 
   std::vector<std::string> label_header({"trial"});
@@ -30,7 +29,11 @@ bool ConsensusLogging::setup(const uint32_t num_robots)
     real_header.push_back("Fx" + std::to_string(i));
     real_header.push_back("Fy" + std::to_string(i));
     real_header.push_back("Fz" + std::to_string(i));
+    real_header.push_back("ux" + std::to_string(i));
+    real_header.push_back("uy" + std::to_string(i));
+    real_header.push_back("uz" + std::to_string(i));
   }
+  _robot_items = 9; // Number of items to log per robot
 
   if(!amrl::logging_setup(_nh, _table, kDataTopic, label_header, int_header, real_header)) {
     return false;
@@ -58,16 +61,23 @@ void ConsensusLogging::update_time(double time)
 
 void ConsensusLogging::update_robot_position(uint32_t idx, const Eigen::VectorXd &pose)
 {
-  _data.reals[(idx * 6) + 1] = pose[0];
-  _data.reals[(idx * 6) + 2] = pose[1];
-  _data.reals[(idx * 6) + 3] = pose[2];
+  _data.reals[(idx * _robot_items) + 1] = pose[0];
+  _data.reals[(idx * _robot_items) + 2] = pose[1];
+  _data.reals[(idx * _robot_items) + 3] = pose[2];
 }
 
 void ConsensusLogging::update_formation_position(uint32_t idx, const Eigen::VectorXd &pose)
 {
-  _data.reals[(idx * 6) + 4] = pose[0];
-  _data.reals[(idx * 6) + 5] = pose[1];
-  _data.reals[(idx * 6) + 6] = pose[2];
+  _data.reals[(idx * _robot_items) + 4] = pose[0];
+  _data.reals[(idx * _robot_items) + 5] = pose[1];
+  _data.reals[(idx * _robot_items) + 6] = pose[2];
+}
+
+void ConsensusLogging::update_robot_control(uint32_t idx, const Eigen::VectorXd &u)
+{
+  _data.reals[(idx * _robot_items) + 7] = u[0];
+  _data.reals[(idx * _robot_items) + 8] = u[1];
+  _data.reals[(idx * _robot_items) + 9] = u[2];
 }
 
 

@@ -1,3 +1,3 @@
 
-add_library(amrl_consensus
+add_library(consensus
   src/FormationConsensus.cpp)

@@ -1,5 +1,4 @@
 
-add_library(amrl_formation
-  src/RobotFormation.cpp
-  src/FormationMovement.cpp)
+add_library(formation_supervisor
+  src/FormationSupervisor.cpp)
   

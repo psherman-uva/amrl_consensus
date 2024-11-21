@@ -28,6 +28,7 @@ public:
   void update_time(double time);
   void update_robot_position(uint32_t idx, const Eigen::VectorXd &pose);
   void update_formation_position(uint32_t idx, const Eigen::VectorXd &pose);
+  void update_robot_control(uint32_t idx, const Eigen::VectorXd &u);
 
 private:
 
@@ -42,6 +43,9 @@ private:
 
   // Database table name
   std::string _table;
+
+  // Number of different items per robot to log
+  uint32_t _robot_items;
 };
 
 

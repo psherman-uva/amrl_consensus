@@ -1,3 +1,3 @@
 
-add_library(amrl_formation_display
+add_library(formation_display
   src/DisplayFormation.cpp)
