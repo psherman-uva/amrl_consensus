@@ -18,7 +18,9 @@ const Eigen::Matrix<double, 0, 1> FormationConsensus::kU0(Eigen::Matrix<double, 
 FormationConsensus::FormationConsensus(
     const uint8_t num_robots,
     const uint8_t num_states,
-    const Vec_t &r_init, 
+    const Vec_t &r_init,
+    const double alpha,
+    const double gamma,
     const std::vector<std::pair<int, int>> &conns) 
 : 
 _t(0.0),
@@ -34,27 +36,26 @@ _L(Mat_t::Zero(_n, _n)),
 _sig(Mat_t::Zero(2*_n, 2*_n)),
 _Sigma(Mat_t::Zero(_nm * 2, _nm * 2)),
 _In(Mat_t::Identity(_n, _n)),
-_Im(Mat_t::Identity(_m, _m))
-// _solver([&](const Vec_t &x0, const Eigen::Matrix<double, 0, 1> &u) { return this->x_dot(x0, u); },
-//   RungeKutta<16, 0>::SolverType::kFourthOrderOptimal)
+_Im(Mat_t::Identity(_m, _m)),
+_gamma(gamma),
+_alpha(alpha),
+_solver(
+  2*_nm,
+  [&](const Vec_t &x0, const Eigen::Matrix<double, 0, 1> &u) { return this->x_dot(x0, u); },
+  RungeKutta::SolverType::kFourthOrderOptimal)
 {
-  // for (const auto &c : conns) {
-  //   _L(c.second, c.first) = -2.0;
-  // }
 
-  for(size_t i = 0; i < _n; ++i) {
-    _L(i,i) = -_L.row(i).sum();
-  }
+  for(const auto &c : conns)     { _L(c.first, c.second) = -1.0; }
+  for(size_t i = 0; i < _n; ++i) { _L(i,i) = -_L.row(i).sum(); }
 
   _sig(Eigen::seqN(0,_n), Eigen::seqN(_n,_n))  = _In;
   _sig(Eigen::seqN(_n,_n), Eigen::seqN(0,_n))  = -_L;
-  _sig(Eigen::seqN(_n,_n), Eigen::seqN(_n,_n)) = -(kAlpha*_In) -(kGamma*_L);
+  _sig(Eigen::seqN(_n,_n), Eigen::seqN(_n,_n)) = -(_alpha*_In) -(_gamma*_L);
 
-  // for (int i = 0; i < _; ++i) {
-  //   for (int j = 0; j < 8; ++j) {
-  //     _Sigma(Eigen::seqN(i*2,_m), Eigen::seqN(j*2,_m)) = _sig(i,j)*_Im;
-  //   }
-  // }
+  // Kronecker Product (kinda) with I_m and _sigma
+  for (int i = 0; i < _m; ++i) {
+    _Sigma(Eigen::seqN(2*_n*i, 2*_n), Eigen::seqN(2*_n*i, 2*_n)) = _sig;
+  }
 
   // // Initialize Xi (Zeta(0) is all zeros)
   // for (int i = 0; i < 4; ++i) {

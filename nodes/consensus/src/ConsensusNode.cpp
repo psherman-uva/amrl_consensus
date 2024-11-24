@@ -9,12 +9,14 @@ namespace amrl {
 ConsensusNode::ConsensusNode(void)
   : _js(_nh),
   _display(nullptr),
-  _num_robots(4),
   _active(false),
   _rbt_setup_done(false),
   _logger(nullptr),
   _logging_setup_done(false)
 {
+  double alpha     = _nh.param<double>("/consensus/alpha", 1.5);
+  double gamma     = _nh.param<double>("/consensus/gamme", 2.0);
+  _num_robots      = _nh.param<int>("/consensus/num_robots", 4);
   _display_enabled = _nh.param<bool>("/display/enabled", false);
   _logging_enabled = _nh.param<bool>("/logging/enabled", false);
 
@@ -33,6 +35,9 @@ ConsensusNode::ConsensusNode(void)
   _js.subscribe_custom_callback(_nh, joy_cb, "/joy");
 
   _setup_tmr = _nh.createTimer(ros::Duration(kLoopPeriod_s), &ConsensusNode::setup, this);
+
+  // Consensus
+
 }
 
 void ConsensusNode::control_loop_callback(const ros::TimerEvent&)

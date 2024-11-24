@@ -24,10 +24,12 @@ public:
   /// @param x0 Initial information state
   /// @param conns Connections between robots in multi-robot system
   FormationConsensus(
-      const uint8_t num_robots,
-      const uint8_t num_states,
-      const Vec_t &r_init,
-      const std::vector<std::pair<int, int>> &conns);
+    const uint8_t num_robots,
+    const uint8_t num_states,
+    const Vec_t &r_init,
+    const double alpha,
+    const double gamma,
+    const std::vector<std::pair<int, int>> &conns);
 
   /// Default constructor
   // FormationConsensus(void);
@@ -62,20 +64,20 @@ private:
   Vec_t _rdot_F;  ///< r_iF dot
   Vec_t _rddot_F; ///< r_iF double-dot
 
-  Mat_t _L; ///< Laplacian
-  Mat_t _sig;
+  Mat_t _L;    ///< Laplacian
+  Mat_t _sig;   
   Mat_t _Sigma;
 
   Mat_t _In;
   Mat_t _Im;
 
-  static constexpr double kGamma = 2.5;
-  static constexpr double kAlpha = 1.5;
+  const double _gamma;
+  const double _alpha;
 
   static const Eigen::Matrix<double, 0, 1> kU0;
 
   /// ODE Solver for system
-  // RungeKutta<16, 0> _solver;
+  RungeKutta _solver;
 };
 
 }

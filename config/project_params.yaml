@@ -1,4 +1,6 @@
-
+consensus:
+  num_robots: 4
+  
 logging:
   enabled: true
   table: "DebugTable"

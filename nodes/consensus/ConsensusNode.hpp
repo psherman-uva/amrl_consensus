@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <libs/consensus/FormationConsensus.hpp>
 #include <libs/formation/FormationSupervisor.hpp>
 #include <libs/display/DisplayFormation.hpp>
 #include <libs/interface/RobotInterface.hpp>
@@ -15,7 +16,6 @@
 #include <geometry_msgs/Vector3.h>
 
 namespace amrl {
-
 
 class ConsensusNode
 {
@@ -60,6 +60,9 @@ private:
   // Interface between consensus node and real robots
   std::vector<std::shared_ptr<RobotInterface>> _rbt_inter;
   bool _rbt_setup_done;
+
+  // Consensus Algorithm
+  std::shared_ptr<FormationConsensus> _consensus;
 
   // Logging Object [nullptr if logging not needed]
   std::shared_ptr<ConsensusLogging> _logger;
