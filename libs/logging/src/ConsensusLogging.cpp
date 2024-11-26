@@ -1,6 +1,10 @@
 
 #include <libs/logging/ConsensusLogging.hpp>
+
+#include <amrl_common/util/util.hpp>
 #include <amrl_logging_util/util.hpp>
+
+
 
 namespace amrl {
 
@@ -35,6 +39,15 @@ bool ConsensusLogging::setup(const uint32_t num_robots)
   }
   _robot_items = 9; // Number of items to log per robot
 
+  // Consensus Result
+  _consensus_idx = _robot_items * num_robots + 1;
+  for(uint32_t i = 0; i < 3 * num_robots; ++i) {
+    real_header.push_back("xi" + std::to_string(i));
+  }
+  for(uint32_t i = 0; i < 3 * num_robots; ++i) {
+    real_header.push_back("zeta" + std::to_string(i));
+  }
+
   if(!amrl::logging_setup(_nh, _table, kDataTopic, label_header, int_header, real_header)) {
     return false;
   }
@@ -50,8 +63,8 @@ bool ConsensusLogging::setup(const uint32_t num_robots)
 
 void ConsensusLogging::publish(void)
 {
-  _data.nums[0] += 1;
   _pub.publish(_data);
+  ++_data.nums[0];
 }
 
 void ConsensusLogging::update_time(double time)
@@ -79,6 +92,15 @@ void ConsensusLogging::update_robot_control(uint32_t idx, const Eigen::VectorXd 
   _data.reals[(idx * _robot_items) + 8] = u[1];
   _data.reals[(idx * _robot_items) + 9] = u[2];
 }
+
+void ConsensusLogging::update_consensus(const Eigen::VectorXd &xi_zeta)
+{
+  uint32_t N = xi_zeta.size();
+  for(uint32_t i = 0; i < N; ++i) {
+    _data.reals[_consensus_idx + i] = xi_zeta[i];
+  }
+}
+
 
 
 }

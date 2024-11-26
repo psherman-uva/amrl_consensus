@@ -8,8 +8,12 @@
 
 #pragma once
 
+#include <libs/formation/FormationSupervisor.hpp>
+
 #include <Eigen/Dense>
 #include <libs/runge_kutta/RungeKutta.hpp>
+
+#include <memory>
 
 namespace amrl {
 
@@ -29,7 +33,8 @@ public:
     const Vec_t &r_init,
     const double alpha,
     const double gamma,
-    const std::vector<std::pair<int, int>> &conns);
+    const std::vector<std::pair<int, int>> &conns,
+    std::shared_ptr<FormationSupervisor> formation);
 
   /// Default constructor
   // FormationConsensus(void);
@@ -45,6 +50,8 @@ public:
 
   Vec_t center(void) const;
 
+  Vec_t full_state(void) const;
+
 private:
   void update_sub_states(void);
   Vec_t x_dot(const Vec_t &x, const Eigen::Matrix<double, 0, 1> &u) const;
@@ -56,7 +63,7 @@ private:
   double _t; // Simulation Time
   const uint8_t _n;  // Number of robots
   const uint8_t _m;  // Number of states (e.g. x,y,z => 3)
-  const uint8_t _nm; // Number of robots * number of states
+  const uint8_t _nm; // (Number of robots) * (number of states)
 
   Vec_t _x;       ///< Full information state [xi, zeta]'
   Vec_t _xi;      ///< Xi   = r_i - r_iF
@@ -75,6 +82,9 @@ private:
   const double _alpha;
 
   static const Eigen::Matrix<double, 0, 1> kU0;
+
+  /// Object that defines "desired" formation
+  std::shared_ptr<FormationSupervisor> _formation;
 
   /// ODE Solver for system
   RungeKutta _solver;

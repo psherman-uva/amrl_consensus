@@ -22,7 +22,7 @@ SimulationNode::SimulationNode(void)
     } else if (i == 2) {
       x0[0] = 1.25;
       x0[1] = -1.25;
-      x0[2] = 1.25;
+      x0[2] =  1.0;
     } else if (i == 3) {
       x0[0] = 1.25;
       x0[1] = 1.25;

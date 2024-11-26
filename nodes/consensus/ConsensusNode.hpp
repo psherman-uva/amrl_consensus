@@ -35,6 +35,8 @@ private:
   void display_loop_callback(const ros::TimerEvent&);
 
   void joy_callback(const sensor_msgs::Joy::ConstPtr &msg);
+
+  void logging_update(void);
   
   // ROS Object
   ros::NodeHandle _nh;
@@ -68,6 +70,7 @@ private:
   std::shared_ptr<ConsensusLogging> _logger;
   bool _logging_enabled;
   bool _logging_setup_done;
+  uint8_t _logging_setup_cnt;
 
   // RViz Display
   std::shared_ptr<DisplayFormation> _display;
@@ -75,11 +78,13 @@ private:
   bool _display_enabled;
 
   ros::Time _start_time;
+  double _time;
   uint8_t _num_robots;
   bool _active;
 
+  static constexpr uint32_t kNumStates     = 3;   //< x, y, z
   static constexpr double kLoopPeriod_s    = 0.2;
-  static constexpr double kCmdLoopPeriod_s = 1.0; // 0.05;
+  static constexpr double kCmdLoopPeriod_s = 0.1; // 0.05;
 };
 
 }

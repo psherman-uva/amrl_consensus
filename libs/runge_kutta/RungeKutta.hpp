@@ -74,7 +74,7 @@ public:
   /// @param  u  Input command at current time. u(t0)
   /// @param  dt Time step to calculate system forward. dt
   /// @return State of the system one time step forward. x(t0+dt)
-  X_t step(const X_t &x0, const U_t &u, const double dt) const;
+  Eigen::Vector<double, 24> step(const X_t &x0, const U_t &u, const double dt) const;
 
 private:
 

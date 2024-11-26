@@ -29,7 +29,8 @@ public:
   void update_robot_position(uint32_t idx, const Eigen::VectorXd &pose);
   void update_formation_position(uint32_t idx, const Eigen::VectorXd &pose);
   void update_robot_control(uint32_t idx, const Eigen::VectorXd &u);
-
+  void update_consensus(const Eigen::VectorXd &xi_zeta);
+  
 private:
 
   // ROS Node Object
@@ -46,6 +47,9 @@ private:
 
   // Number of different items per robot to log
   uint32_t _robot_items;
+
+  // Consensus starting idx
+  uint32_t _consensus_idx;
 };
 
 

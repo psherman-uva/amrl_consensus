@@ -55,11 +55,11 @@ RungeKutta::RungeKutta(
   }
 }
 
-typename RungeKutta::X_t RungeKutta::step(
+Eigen::Vector<double, 24> RungeKutta::step(
     const X_t &x0, const U_t &u, const double dt) const
 {
   std::vector<X_t> func_evals; // Store evaluation of x' function evaluations f_j
-  X_t dx = X_t::Zero(_N);       // Delta from RK step (1 for each state variable)
+  X_t dx = X_t::Zero(_N);      // Delta from RK step (1 for each state variable)
 
   // Loop number of stages for specified RK type
   for(int i = 0; i < _s; ++i) {
