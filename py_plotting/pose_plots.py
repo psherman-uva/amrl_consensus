@@ -71,35 +71,36 @@ def formation_center_plot(data):
     ax2.set_ylabel("$y$", rotation=0)
     ax2.legend(["$robot_1$", "$robot_2$","$robot_3$","$robot_4$"])
 
-
-def consensus_plot(data):
+def plot_time_series(data, header, plot_label):
     fig = plt.figure(layout='constrained', dpi=200)
     fig.set_size_inches(5.5, 4.5)
     gs = GridSpec(3, 1, figure=fig)
 
-    ax1 = fig.add_subplot(gs[0])
-    ax1.set_title("$\\xi(x)$")
-    for i in range(4):
-        ax1.plot(data["time"], data[f"xi{i}"], color=ClrMap[i])
-    ax1.set_xlabel("$t_k\\ [s]$")
-    ax1.set_ylabel("$x\\ [m]$", rotation=0)
-    ax1.legend(["$robot_1$", "$robot_2$","$robot_3$","$robot_4$"])
+    ax   = []
+    lbls = ["x", "y", "z"]
+    ypad = [10, 10, 10]
+    for i in range(3):
+        ax.append(fig.add_subplot(gs[i]))
+        ax[i].set_title(f"${plot_label}({lbls[i]})$")
+        ax[i].set_xlabel("$t_k\\ [s]$")
+        ax[i].set_ylabel(f"${lbls[i]}\\ [m]$", rotation=0, labelpad=ypad[i])
+        ax[i].legend(["$robot_1$", "$robot_2$","$robot_3$","$robot_4$"])
 
-    ax2 = fig.add_subplot(gs[1])
-    ax2.set_title("$\\xi(y)$")
-    for i in range(4, 8):
-        ax2.plot(data["time"], data[f"xi{i}"], color=ClrMap[i-4])
-    ax2.set_xlabel("$t_k\\ [s]$")
-    ax2.set_ylabel("$y\\ [m]$", rotation=0)
-    ax2.legend(["$robot_1$", "$robot_2$","$robot_3$","$robot_4$"])
+        min_y = np.inf
+        max_y = -np.inf
+        xdata = data["time"]
+        for j in range(0, 4):
+            ydata = data[f"{header}{4*i + j}"]
+            min_y = min(min_y, np.min(ydata))
+            max_y = max(max_y, np.max(ydata))
+            ax[i].plot(xdata, ydata, color=ClrMap[j])
 
-    ax3 = fig.add_subplot(gs[2])
-    ax3.set_title("$\\xi(z)$")
-    for i in range(8, 12):
-        ax3.plot(data["time"], data[f"xi{i}"], color=ClrMap[i-8])
-    ax3.set_xlabel("$t_k\\ [s]$")
-    ax3.set_ylabel("$z\\ [m]$", rotation=0)
-    ax3.legend(["$robot_1$", "$robot_2$","$robot_3$","$robot_4$"])
+        dy = 0.05*(max_y - min_y)
+
+        ax[i].axis([0.0, xdata[-1], min_y - dy, max_y + dy])
+
+    return ax
+
 
 def robot_XY(data):
     fig = plt.figure(layout='constrained', dpi=200)
@@ -117,7 +118,7 @@ def robot_XY(data):
 def main():
     data = get_data()
 
-    consensus_plot(data)
+    ax = plot_time_series(data, "xi", "\\xi")
     
     plt.show()
 

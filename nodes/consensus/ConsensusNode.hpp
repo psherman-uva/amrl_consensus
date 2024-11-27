@@ -65,6 +65,8 @@ private:
 
   // Consensus Algorithm
   std::shared_ptr<FormationConsensus> _consensus;
+  Eigen::VectorXd _r; // Robot posisitions
+  Eigen::VectorXd _v; // Robot velocities
 
   // Logging Object [nullptr if logging not needed]
   std::shared_ptr<ConsensusLogging> _logger;

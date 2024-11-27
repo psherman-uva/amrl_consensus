@@ -31,25 +31,30 @@ ConsensusNode::ConsensusNode(void)
     std::shared_ptr<RobotInterface> rbt_int(std::make_shared<RobotInterface>(i, _nh, _formation, _display));
     _rbt_inter.push_back(rbt_int);
   }
+  Eigen::VectorXd r = Eigen::VectorXd::Zero(kNuStates * _num_robots);
+  Eigen::VectorXd v = Eigen::VectorXd::Zero(kNuStates * _num_robots);
 
   boost::function<void(const sensor_msgs::Joy::ConstPtr&)> joy_cb = boost::bind(&ConsensusNode::joy_callback, this, _1);
   _js.subscribe_custom_callback(_nh, joy_cb, "/joy");
-
 
   // Start looping setup function.
   _setup_tmr = _nh.createTimer(ros::Duration(kLoopPeriod_s), &ConsensusNode::setup, this);
 }
 
 void ConsensusNode::control_loop_callback(const ros::TimerEvent&)
-{
-  static constexpr double freq = 2*M_PI / 5.0;
-  
+{  
   _time = (ros::Time::now() - _start_time).toSec();
 
   // Consensus
   Eigen::VectorXd r = Eigen::Vector<double, 12>::Zero();
   Eigen::VectorXd v = Eigen::Vector<double, 12>::Zero();
   Eigen::VectorXd a = Eigen::Vector<double, 12>::Zero();
+  for(size_t i = 0; i < _num_robots; ++i) {
+    Eigen::Vector3d pos = _rbt_inter[i]->pose_get();
+    Eigen::Vector3d vel = _rbt_inter[i]->velocity_get();
+    
+    r[]
+  }
 
   _consensus->control_update(r, v, a, kCmdLoopPeriod_s);
 
