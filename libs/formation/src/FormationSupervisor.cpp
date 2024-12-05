@@ -1,5 +1,8 @@
 #include <libs/formation/FormationSupervisor.hpp>
 
+#include <nlohmann/json.hpp>
+#include <fstream>
+#include <iostream>
 
 namespace amrl {
 
@@ -10,6 +13,31 @@ FormationSupervisor::FormationSupervisor(const uint32_t num_robots)
   _r_F_dot = Eigen::VectorXd::Zero(3 * _n);
 
   formation_pose_vector(0.0);
+}
+
+void FormationSupervisor::initialize_from_json(const std::string &jsonfile)
+{
+  using json = nlohmann::json;
+  std::ifstream f(jsonfile);
+  if (f.is_open()) {
+    json data = json::parse(f);
+    json formation = data["formation"];
+    uint32_t idx = 0; 
+    
+    for(json::iterator it = formation.begin(); it != formation.end(); ++it) {
+      double x = it.value()["x"];
+      double y = it.value()["y"];
+      double z = it.value()["z"];
+      if(idx < _n) {
+        _r_F[idx]        = x;
+        _r_F[idx + _n]   = y;
+        _r_F[idx + 2*_n] = z;
+      }
+      ++idx;
+    }
+  } else {
+    std::cout << jsonfile << ": File Not Open" << std::endl;
+  }
 }
 
 Eigen::Vector3d FormationSupervisor::vel_desired(double t)
@@ -29,21 +57,6 @@ Eigen::Vector3d FormationSupervisor::vel_dot_desired(double t)
 
 Eigen::VectorXd FormationSupervisor::formation_pose_vector(const double t)
 {
-  // X - components
-  _r_F[0] = -1.0;
-  _r_F[1] = -1.0;
-  _r_F[2] =  1.0;
-  _r_F[3] =  1.0;
-
-  // Y - components
-  _r_F[4] =  1.0;
-  _r_F[5] = -1.0;
-  _r_F[6] = -1.0;
-  _r_F[7] =  1.0;
-
-  // Z - components
-  // Keep zero for now
-
   return _r_F;
 }
 

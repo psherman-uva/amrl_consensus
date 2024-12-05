@@ -7,9 +7,7 @@
 namespace amrl {
 
 ConsensusNode::ConsensusNode(void)
-  : _js(_nh),
-  _display(nullptr),
-  _active(false),
+  : _display(nullptr),
   _rbt_setup_done(false),
   _logger(nullptr),
   _logging_setup_done(false),
@@ -17,25 +15,29 @@ ConsensusNode::ConsensusNode(void)
   _start_time(0.0),
   _time(0.0)
 {
+  std::string config_dir = _nh.param<std::string>("/config/directory", "");
+
   _num_robots      = _nh.param<int>("/consensus/num_robots", 4);
   _display_enabled = _nh.param<bool>("/display/enabled", false);
   _logging_enabled = _nh.param<bool>("/logging/enabled", false);
+  _formation_label = _nh.param<std::string>("/consensus/formation", "none");
 
   if(_display_enabled) {
     _display = std::make_shared<DisplayFormation>(_nh, "origin_frame", ros::this_node::getName());
   }
 
   _formation = std::make_shared<FormationSupervisor>(_num_robots );
+  if((!config_dir.empty()) && _formation_label != "none") {
+    std::string formation_file = config_dir + _formation_label + ".json";
+    _formation->initialize_from_json(formation_file);
+  }
 
   for(size_t i = 0; i < _num_robots; ++i) {
     std::shared_ptr<RobotInterface> rbt_int(std::make_shared<RobotInterface>(i, _nh, _formation, _display));
     _rbt_inter.push_back(rbt_int);
   }
-  Eigen::VectorXd r = Eigen::VectorXd::Zero(kNuStates * _num_robots);
-  Eigen::VectorXd v = Eigen::VectorXd::Zero(kNuStates * _num_robots);
-
-  boost::function<void(const sensor_msgs::Joy::ConstPtr&)> joy_cb = boost::bind(&ConsensusNode::joy_callback, this, _1);
-  _js.subscribe_custom_callback(_nh, joy_cb, "/joy");
+  Eigen::VectorXd r = Eigen::VectorXd::Zero(kNumStates * _num_robots);
+  Eigen::VectorXd v = Eigen::VectorXd::Zero(kNumStates * _num_robots);
 
   // Start looping setup function.
   _setup_tmr = _nh.createTimer(ros::Duration(kLoopPeriod_s), &ConsensusNode::setup, this);
@@ -46,20 +48,33 @@ void ConsensusNode::control_loop_callback(const ros::TimerEvent&)
   _time = (ros::Time::now() - _start_time).toSec();
 
   // Consensus
-  Eigen::VectorXd r = Eigen::Vector<double, 12>::Zero();
-  Eigen::VectorXd v = Eigen::Vector<double, 12>::Zero();
-  Eigen::VectorXd a = Eigen::Vector<double, 12>::Zero();
+  Eigen::VectorXd r_i(Eigen::VectorXd::Zero(kNumStates * _num_robots));
+  Eigen::VectorXd v_i(Eigen::VectorXd::Zero(kNumStates * _num_robots));
   for(size_t i = 0; i < _num_robots; ++i) {
-    Eigen::Vector3d pos = _rbt_inter[i]->pose_get();
-    Eigen::Vector3d vel = _rbt_inter[i]->velocity_get();
-    
-    r[]
+    Eigen::VectorXd r_temp = _rbt_inter[i]->pose_get();
+    Eigen::VectorXd v_temp = _rbt_inter[i]->velocity_get();
+    for (size_t j = 0; j < kNumStates; ++j) {
+      r_i[_num_robots*j + i] = r_temp[j];
+      v_i[_num_robots*j + i] = v_temp[j];
+    }
   }
 
-  _consensus->control_update(r, v, a, kCmdLoopPeriod_s);
+  Eigen::VectorXd x_dot = _consensus->xi_zeta_dot(r_i, v_i, _time);
+  Eigen::VectorXd zeta_dot(kNumStates * _num_robots);
+  for(int i = 0; i < kNumStates; ++i) {
+    zeta_dot(Eigen::seqN(i*_num_robots, _num_robots)) = x_dot(Eigen::seqN(i*2*_num_robots + _num_robots, _num_robots));
+  }
 
-  // Log Data if enabled
+  for(size_t i = 0; i < _num_robots; ++i) {
+    Eigen::VectorXd u_i(Eigen::VectorXd::Zero(kNumStates));
+    for(size_t j = 0; j < kNumStates; ++j) {
+      u_i[j] = zeta_dot[_num_robots*j + i];
+    }
+    _rbt_inter[i]->command_publish(u_i);
+  }
+
   logging_update();
+
 }
 
 void ConsensusNode::display_loop_callback(const ros::TimerEvent&)
@@ -74,7 +89,7 @@ void ConsensusNode::setup(const ros::TimerEvent&)
     if (_logging_enabled) {
       if (!_logger) {
         _logger = std::make_shared<ConsensusLogging>(_nh);
-        if(!_logger->setup(_num_robots)) { _logger = nullptr; }
+        if(!_logger->setup(_num_robots, kNumStates, _formation_label)) { _logger = nullptr; }
       } else if(_logging_setup_cnt < 10) {
         ++_logging_setup_cnt;
       } else {
@@ -97,8 +112,8 @@ void ConsensusNode::setup(const ros::TimerEvent&)
       {2, 1}, {2, 3},
       {3, 0}
     });
-    double alpha     = _nh.param<double>("/consensus/alpha", 1.5);
-    double gamma     = _nh.param<double>("/consensus/gamma", 2.0);
+    double alpha = _nh.param<double>("/consensus/alpha", 1.5);
+    double gamma = _nh.param<double>("/consensus/gamma", 2.0);
 
     Eigen::VectorXd r_init(Eigen::VectorXd::Zero(_num_robots * kNumStates));
     for(uint32_t i = 0; i < _num_robots; ++i) {
@@ -143,26 +158,14 @@ void ConsensusNode::logging_update(void)
     _logger->update_time(_time);
     _logger->update_consensus(_consensus->full_state());
     for(uint32_t i = 0; i < _num_robots; ++i) {
-      Eigen::Vector3d pos = _rbt_inter[i]->pose_get();
+      Eigen::Vector3d pos(_rbt_inter[i]->pose_get());
+      Eigen::Vector3d rF(_formation->robot_formation_pose_vector(i));
+
       _logger->update_robot_position(i, pos);
+      _logger->update_formation_position(i, pos - rF);
     }
     _logger->publish();
   }
-}
-
-void ConsensusNode::joy_callback(const sensor_msgs::Joy::ConstPtr &msg)
-{
-  _js.update_data(msg->axes, msg->buttons);
-  
-  if ((!_active) && _js.button_A()) {
-    ROS_INFO("Button A");
-    _active = true;
-  } 
-
-  if (_js.button_B()) {
-    ROS_INFO("Shutting down node");
-    ros::shutdown();
-  } 
 }
 
 }

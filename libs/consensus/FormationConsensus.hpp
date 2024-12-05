@@ -42,15 +42,20 @@ public:
   // Default destructor
   ~FormationConsensus(void) = default;
 
-  Vec_t control_update(
+  void update(
       const Vec_t &r,
       const Vec_t &v,
-      const Vec_t &a,
+      const double t,
       const double dt);
 
-  Vec_t center(void) const;
+  Vec_t xi_zeta_dot(
+    const Vec_t &r, 
+    const Vec_t &v,
+    const double t);
 
   Vec_t full_state(void) const;
+  Vec_t xi(void) const;
+  Vec_t zeta(void) const;
 
 private:
   void update_sub_states(void);
@@ -68,6 +73,7 @@ private:
   Vec_t _x;       ///< Full information state [xi, zeta]'
   Vec_t _xi;      ///< Xi   = r_i - r_iF
   Vec_t _zeta;    ///< Zeta = v_i - r'_iF
+
   Vec_t _rdot_F;  ///< r_iF dot
   Vec_t _rddot_F; ///< r_iF double-dot
 

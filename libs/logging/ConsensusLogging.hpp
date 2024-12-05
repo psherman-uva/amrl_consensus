@@ -20,7 +20,10 @@ public:
   ~ConsensusLogging(void) = default;
 
   /// Setup Logging
-  bool setup(const uint32_t num_robots);
+  bool setup(
+    const uint32_t num_robots,
+    const uint32_t num_states, 
+    const std::string &formation);
 
   /// Log Data
   void publish(void);

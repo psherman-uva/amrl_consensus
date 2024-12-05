@@ -3,11 +3,7 @@
 
 namespace amrl {
 
-// const FormationConsensus::Vec_t FormationConsensus::r_iF(
-//   { -1.5,  0.0,  0.0,  1.5, 1.5,  0.0,  0.0, -1.5});
-
 const Eigen::Matrix<double, 0, 1> FormationConsensus::kU0(Eigen::Matrix<double, 0, 1>::Zero());
-
 
 FormationConsensus::FormationConsensus(
     const uint8_t num_robots,
@@ -48,42 +44,63 @@ _solver(
   _sig(Eigen::seqN(_n,_n), Eigen::seqN(0,_n))  = -_L;
   _sig(Eigen::seqN(_n,_n), Eigen::seqN(_n,_n)) = -(_alpha*_In) -(_gamma*_L);
 
-  // Kronecker Product (kinda)
+  // Replicate sigma matrix into diagonal blocks. One for each state
   for (int i = 0; i < _m; ++i) {
     _Sigma(Eigen::seqN(2*_n*i, 2*_n), Eigen::seqN(2*_n*i, 2*_n)) = _sig;
   }
 
   // Initialize _x with Xi (Zeta(0) is all zeros)
-  Eigen::VectorXd r_iF    = _formation->formation_pose_vector(0.0); 
-  _x(Eigen::seqN(0, _nm)) = r_init - r_iF;
+  Eigen::VectorXd r_iF = _formation->formation_pose_vector(0.0);
+  for (int i = 0; i < _m; ++i) {
+    _x(Eigen::seqN(i*2*_n, _n)) = r_init(Eigen::seqN(i*_n, _n)) - r_iF(Eigen::seqN(i*_n, _n));
+  }
+
   update_sub_states();
 }
 
 void FormationConsensus::update_sub_states(void)
 {
-  _xi   = _x(Eigen::seqN(0, _n*_m));
-  _zeta = _x(Eigen::seqN(_n*_m, _n*_m));
+  for(int i = 0; i < _m; ++i) {
+    _xi(Eigen::seqN(i*_n, _n))   = _x(Eigen::seqN(i*2*_n, _n));
+    _zeta(Eigen::seqN(i*_n, _n)) = _x(Eigen::seqN(i*2*_n + _n, _n));
+  }
 }
 
-FormationConsensus::Vec_t FormationConsensus::control_update(
+void FormationConsensus::update(
   const Vec_t &r, 
   const Vec_t &v,
-  const Vec_t &a,
+  const double t,
   const double dt)
 {
+  Eigen::VectorXd r_iF     = _formation->formation_pose_vector(t);
+  Eigen::VectorXd r_dot_iF = _formation->formation_velocity_vector(t);
+
+
+  // Eigen::VectorXd x(Vec_t::Zero(_nm * 2)),
+  // for (int i = 0; i < _m; ++i) {
+  //   _x(Eigen::seqN(i*2*_n, _n))      = r(Eigen::seqN(i*_n, _n)) - r_iF(Eigen::seqN(i*_n, _n));
+  //   _x(Eigen::seqN(i*2*_n + _n, _n)) = v(Eigen::seqN(i*_n, _n)) - r_dot_iF(Eigen::seqN(i*_n, _n));
+  // }
+
   _x = _solver.step(_x, kU0, dt);
   update_sub_states();
+}
 
-  // // Reinitialize _x with updated robot information
-  // _x(Eigen::seqN(0, 8)) = r - r_iF;     // Xi(0)
-  // _x(Eigen::seqN(8, 8)) = v - _rdot_F;  // Zeta(0)
+FormationConsensus::Vec_t FormationConsensus::xi_zeta_dot(
+  const Vec_t &r, 
+  const Vec_t &v,
+  const double t)
+{
+  Eigen::VectorXd r_iF     = _formation->formation_pose_vector(t);
+  Eigen::VectorXd r_dot_iF = _formation->formation_velocity_vector(t);
 
-  // Vec_t x_dot = _Sigma*_x;
-  // Eigen::Matrix<double, 8, 1> xi_dot   = x_dot(Eigen::seqN(0, 8));
-  // Eigen::Matrix<double, 8, 1> zeta_dot = x_dot(Eigen::seqN(8, 8));
-  // Eigen::Matrix<double, 8, 1> u        = zeta_dot + _rddot_F;
-  Vec_t u = Vec_t::Zero(_n);
-  return u;
+  Eigen::VectorXd x(Vec_t::Zero(_nm * 2));
+  for (int i = 0; i < _m; ++i) {
+    x(Eigen::seqN(i*2*_n, _n))      = r(Eigen::seqN(i*_n, _n)) - r_iF(Eigen::seqN(i*_n, _n));
+    x(Eigen::seqN(i*2*_n + _n, _n)) = v(Eigen::seqN(i*_n, _n)) - r_dot_iF(Eigen::seqN(i*_n, _n));
+  }
+
+  return _Sigma*x;
 }
 
 FormationConsensus::Vec_t FormationConsensus::full_state(void) const
@@ -91,9 +108,14 @@ FormationConsensus::Vec_t FormationConsensus::full_state(void) const
   return _x;
 }
 
-FormationConsensus::Vec_t FormationConsensus::center(void) const
+FormationConsensus::Vec_t FormationConsensus::xi(void) const
 {
   return _xi;
+}
+
+FormationConsensus::Vec_t FormationConsensus::zeta(void) const
+{
+  return _zeta;
 }
 
 FormationConsensus::Vec_t FormationConsensus::x_dot(const Vec_t &x, const Eigen::Matrix<double, 0, 1> &u) const

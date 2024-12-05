@@ -14,7 +14,10 @@ ConsensusLogging::ConsensusLogging(ros::NodeHandle &nh)
 {
 }
 
-bool ConsensusLogging::setup(const uint32_t num_robots)
+bool ConsensusLogging::setup(    
+  const uint32_t num_robots,
+  const uint32_t num_states, 
+  const std::string &formation)
 {
   const std::string kDataTopic = ros::this_node::getName() + "/consensus_data";
 
@@ -23,7 +26,7 @@ bool ConsensusLogging::setup(const uint32_t num_robots)
 
   if(_table.empty() || (drop_table && !amrl::logging_delete_table(_nh, _table))) { return false; }
 
-  std::vector<std::string> label_header({"trial"});
+  std::vector<std::string> label_header({"formation"});
   std::vector<std::string> int_header({"idx"});
   std::vector<std::string> real_header({"time"});
   for(uint32_t i = 0; i < num_robots; ++i) {
@@ -41,18 +44,26 @@ bool ConsensusLogging::setup(const uint32_t num_robots)
 
   // Consensus Result
   _consensus_idx = _robot_items * num_robots + 1;
-  for(uint32_t i = 0; i < 3 * num_robots; ++i) {
-    real_header.push_back("xi" + std::to_string(i));
-  }
-  for(uint32_t i = 0; i < 3 * num_robots; ++i) {
-    real_header.push_back("zeta" + std::to_string(i));
+  uint32_t k_zeta = 0;
+  uint32_t k_xi = 0;
+  for(uint32_t i = 0; i < num_states; ++i) {
+    for (uint32_t j = 0; j < num_robots; ++j) {
+      real_header.push_back("xi" + std::to_string(k_xi));
+      ++k_xi;  
+    }
+    for (uint32_t j = 0; j < num_robots; ++j) {
+      real_header.push_back("zeta" + std::to_string(k_zeta));
+      ++k_zeta;  
+    }
   }
 
   if(!amrl::logging_setup(_nh, _table, kDataTopic, label_header, int_header, real_header)) {
     return false;
   }
 
-  _data.labels.resize(label_header.size(), "test");
+  _data.labels.resize(label_header.size());
+  _data.labels[0] = formation;
+
   _data.nums.resize(int_header.size(), 0);
   _data.reals.resize(real_header.size(), 1.0);
 

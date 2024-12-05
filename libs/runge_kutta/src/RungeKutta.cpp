@@ -55,7 +55,7 @@ RungeKutta::RungeKutta(
   }
 }
 
-Eigen::Vector<double, 24> RungeKutta::step(
+Eigen::VectorXd RungeKutta::step(
     const X_t &x0, const U_t &u, const double dt) const
 {
   std::vector<X_t> func_evals; // Store evaluation of x' function evaluations f_j
@@ -83,5 +83,4 @@ Eigen::Vector<double, 24> RungeKutta::step(
   return x0 + dx;
 }
 
-
-}
+} // namespace amrl

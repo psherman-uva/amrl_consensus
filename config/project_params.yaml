@@ -1,6 +1,12 @@
+config: 
+  directory: "/home/patrick/uva/ros/catkin_ws/src/amrl_consensus/config/formations/"
+
 consensus:
+  formation: "line"
   num_robots: 4
-  
+  alpha: 1.5
+  gamma: 2.0
+
 logging:
   enabled: true
   table: "DebugTable"

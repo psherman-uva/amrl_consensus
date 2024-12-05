@@ -20,6 +20,8 @@ public:
   FormationSupervisor(const uint32_t num_robots);
   ~FormationSupervisor(void) = default;
 
+  void initialize_from_json(const std::string &jsonfile);
+
   Eigen::Vector3d vel_desired(double t);
   Eigen::Vector3d vel_int_desired(double t);
   Eigen::Vector3d vel_dot_desired(double t);

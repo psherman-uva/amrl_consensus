@@ -31,7 +31,6 @@ public:
   
   Eigen::VectorXd pose_get(void) const;
   Eigen::VectorXd velocity_get(void) const;
-  
   Eigen::VectorXd formation_pose_get(void);
 
 private:

@@ -7,9 +7,6 @@
 #include <libs/interface/RobotInterface.hpp>
 #include <libs/logging/ConsensusLogging.hpp>
 
-#include <amrl_common/joystick/Joystick.hpp>
-
-
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
 #include <geometry_msgs/Point.h>
@@ -34,15 +31,10 @@ private:
 
   void display_loop_callback(const ros::TimerEvent&);
 
-  void joy_callback(const sensor_msgs::Joy::ConstPtr &msg);
-
   void logging_update(void);
   
   // ROS Object
   ros::NodeHandle _nh;
-
-  // Subscribe to joystick object
-  ros::Subscriber _joy_sub;
 
   // Timer for control loop
   ros::Timer _cmd_tmr;
@@ -52,9 +44,6 @@ private:
 
   // Timer for display loop
   ros::Timer _display_tmr;
-
-  // Custom wrapper for using joystick
-  Joystick _js;
 
   // Formation definition
   std::shared_ptr<FormationSupervisor> _formation;
@@ -82,7 +71,7 @@ private:
   ros::Time _start_time;
   double _time;
   uint8_t _num_robots;
-  bool _active;
+  std::string _formation_label;
 
   static constexpr uint32_t kNumStates     = 3;   //< x, y, z
   static constexpr double kLoopPeriod_s    = 0.2;

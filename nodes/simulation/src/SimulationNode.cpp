@@ -12,21 +12,21 @@ SimulationNode::SimulationNode(void)
     std::string rbt_str = "robot" + std::to_string(i);
     
     if (i == 0) {
-      x0[0] = -1.25;
+      x0[0] = -1.2;
       x0[1] = 1.25;
       x0[2] = 0.6;
     } else if (i == 1) {
-      x0[0] = -1.25;
+      x0[0] = -1.2;
       x0[1] = -1.25;
       x0[2] = 0.8;
     } else if (i == 2) {
-      x0[0] = 1.25;
+      x0[0] = 1.2;
       x0[1] = -1.25;
       x0[2] =  1.0;
     } else if (i == 3) {
-      x0[0] = 1.25;
+      x0[0] = 1.2;
       x0[1] = 1.25;
-      x0[2] = 1.2;
+      x0[2] = 1.15;
     } 
 
     std::shared_ptr<SimulationRobot> rbt(std::make_shared<SimulationRobot>(_nh, rbt_str, x0));
