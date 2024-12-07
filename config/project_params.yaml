@@ -9,8 +9,9 @@ consensus:
 
 logging:
   enabled: true
-  table: "DebugTable"
-  drop_table: true
+  drop_table: false
+  table: "FinalResults"
+  tags: "case1"
 
 display:
   enabled: true

@@ -14,11 +14,6 @@
   <node pkg="tf2_ros" type="static_transform_publisher" name="origin_broadcaster" 
                                                 args="0 0 0 0 0 0 1 world origin_frame"/>
 
-  <!-- Joy Node -->
-  <node respawn="true" pkg="joy" type="joy_node" name="joy" >
-    <param name="dev" type="string" value="/dev/input/js0" />
-  </node>
-
   <!-- Consensus Node -->
   <node pkg="amrl_consensus" type="consensus_node" name="consensus_node" output="screen" />
   <node pkg="amrl_consensus" type="simulation_node" name="simulation_node" output="screen" />

@@ -21,12 +21,14 @@ bool ConsensusLogging::setup(
 {
   const std::string kDataTopic = ros::this_node::getName() + "/consensus_data";
 
-  bool drop_table = _nh.param<bool>("/logging/drop_table", true);
-  _table          = _nh.param<std::string>("/logging/table", "");
+  bool drop_table  = _nh.param<bool>("/logging/drop_table", true);
+  std::string tags = _nh.param<std::string>("/logging/tags", "");
+  _table           = _nh.param<std::string>("/logging/table", "");
+
 
   if(_table.empty() || (drop_table && !amrl::logging_delete_table(_nh, _table))) { return false; }
 
-  std::vector<std::string> label_header({"formation"});
+  std::vector<std::string> label_header({"formation", "test_case"});
   std::vector<std::string> int_header({"idx"});
   std::vector<std::string> real_header({"time"});
   for(uint32_t i = 0; i < num_robots; ++i) {
@@ -63,6 +65,7 @@ bool ConsensusLogging::setup(
 
   _data.labels.resize(label_header.size());
   _data.labels[0] = formation;
+  _data.labels[1] = tags;
 
   _data.nums.resize(int_header.size(), 0);
   _data.reals.resize(real_header.size(), 1.0);

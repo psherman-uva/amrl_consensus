@@ -73,8 +73,11 @@ void ConsensusNode::control_loop_callback(const ros::TimerEvent&)
     _rbt_inter[i]->command_publish(u_i);
   }
 
-  logging_update();
-
+  if(_time <= 15.0) {
+    logging_update();
+  } else if (_time > 16.0){
+    ros::shutdown();
+  }
 }
 
 void ConsensusNode::display_loop_callback(const ros::TimerEvent&)
@@ -105,13 +108,18 @@ void ConsensusNode::setup(const ros::TimerEvent&)
   if(!_rbt_setup_done && std::all_of(_rbt_inter.begin(), _rbt_inter.end(), 
     [](const std::shared_ptr<RobotInterface> &ri) { return ri->pose_ready(); })) {
 
-    // Initialize consensus object
+    //Initialize consensus object
     std::vector<std::pair<int, int>> conns({
       {0, 1}, {0, 3},
       {1, 2},
       {2, 1}, {2, 3},
       {3, 0}
     });
+
+    // std::vector<std::pair<int, int>> conns({
+    //   {0, 3}, {1, 2}, {3, 2}, {2, 3}
+    // });
+
     double alpha = _nh.param<double>("/consensus/alpha", 1.5);
     double gamma = _nh.param<double>("/consensus/gamma", 2.0);
 

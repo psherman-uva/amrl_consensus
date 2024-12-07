@@ -41,8 +41,8 @@ def read_all_data_from_table(db_filename, table):
   sql_cmd = f"SELECT * FROM {table}"
   return read_data_from_database(db_filename, sql_cmd)
 
-def read_all_formation_data(db_filename, table, formation):
-  sql_cmd = f"SELECT * FROM {table} WHERE formation='{formation}'"
+def read_all_formation_data(db_filename, table, formation, test_case):
+  sql_cmd = f"SELECT * FROM {table} WHERE formation='{formation}' AND test_case='{test_case}'"
   return read_data_from_database(db_filename, sql_cmd)
 
 def delete_obs_file_data(db_filename, table, obs_file):
