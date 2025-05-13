@@ -3,8 +3,6 @@
 
 namespace amrl {
 
-const Eigen::Matrix<double, 0, 1> FormationConsensus::kU0(Eigen::Matrix<double, 0, 1>::Zero());
-
 FormationConsensus::FormationConsensus(
     const uint8_t num_robots,
     const uint8_t num_states,
@@ -30,11 +28,7 @@ _In(Mat_t::Identity(_n, _n)),
 _Im(Mat_t::Identity(_m, _m)),
 _gamma(gamma),
 _alpha(alpha),
-_formation(formation),
-_solver(
-  2*_nm,
-  [&](const Vec_t &x0, const Eigen::Matrix<double, 0, 1> &u) { return this->x_dot(x0, u); },
-  RungeKutta::SolverType::kFourthOrderOptimal)
+_formation(formation)
 {
 
   for(const auto &c : conns)     { _L(c.first, c.second) = -1.0; }
@@ -64,26 +58,6 @@ void FormationConsensus::update_sub_states(void)
     _xi(Eigen::seqN(i*_n, _n))   = _x(Eigen::seqN(i*2*_n, _n));
     _zeta(Eigen::seqN(i*_n, _n)) = _x(Eigen::seqN(i*2*_n + _n, _n));
   }
-}
-
-void FormationConsensus::update(
-  const Vec_t &r, 
-  const Vec_t &v,
-  const double t,
-  const double dt)
-{
-  Eigen::VectorXd r_iF     = _formation->formation_pose_vector(t);
-  Eigen::VectorXd r_dot_iF = _formation->formation_velocity_vector(t);
-
-
-  // Eigen::VectorXd x(Vec_t::Zero(_nm * 2)),
-  // for (int i = 0; i < _m; ++i) {
-  //   _x(Eigen::seqN(i*2*_n, _n))      = r(Eigen::seqN(i*_n, _n)) - r_iF(Eigen::seqN(i*_n, _n));
-  //   _x(Eigen::seqN(i*2*_n + _n, _n)) = v(Eigen::seqN(i*_n, _n)) - r_dot_iF(Eigen::seqN(i*_n, _n));
-  // }
-
-  _x = _solver.step(_x, kU0, dt);
-  update_sub_states();
 }
 
 FormationConsensus::Vec_t FormationConsensus::xi_zeta_dot(
@@ -116,11 +90,6 @@ FormationConsensus::Vec_t FormationConsensus::xi(void) const
 FormationConsensus::Vec_t FormationConsensus::zeta(void) const
 {
   return _zeta;
-}
-
-FormationConsensus::Vec_t FormationConsensus::x_dot(const Vec_t &x, const Eigen::Matrix<double, 0, 1> &u) const
-{
-  return _Sigma*x;
 }
 
 }

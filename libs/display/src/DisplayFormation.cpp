@@ -12,7 +12,7 @@ DisplayFormation::DisplayFormation(
   _frame_id(frame_id),
   _pub_namespace(pub_namespace)
 {
-  _rviz_pub = _nh.advertise<visualization_msgs::Marker>(pub_namespace + "/consensus_markers", 10);
+  _rviz_pub = _nh.advertise<visualization_msgs::Marker>(pub_namespace + "/consensus_markers", 100);
 }
 
 void DisplayFormation::publish_markers(void)

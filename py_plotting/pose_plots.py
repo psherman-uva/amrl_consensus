@@ -7,7 +7,7 @@ Date:   July 2024
 """
 
 import sys
-sys.path.insert(1, "/home/patrick/uva/ros/catkin_ws/src/amrl_consensus/py_plotting")
+sys.path.insert(1, "/home/patrick/uva/ros/amrl_ws/src/amrl_consensus/py_plotting")
 
 import numpy as np
 import matplotlib.pyplot as plt

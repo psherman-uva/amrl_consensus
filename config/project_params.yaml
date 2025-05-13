@@ -1,17 +1,18 @@
 config: 
-  directory: "/home/patrick/uva/ros/catkin_ws/src/amrl_consensus/config/formations/"
+  formation_directory: "/home/patrick/uva/ros/amrl_ws/src/amrl_consensus/config/formations/"
+  plan_directory: "/home/patrick/uva/ros/amrl_ws/src/amrl_consensus/config/plans/"
+
+display:
+  enabled: true
 
 consensus:
-  formation: "line"
+  plan: "circle_line"
   num_robots: 4
   alpha: 1.5
   gamma: 2.0
 
 logging:
-  enabled: true
+  enabled: false
   drop_table: false
   table: "FinalResults"
   tags: "case1"
-
-display:
-  enabled: true

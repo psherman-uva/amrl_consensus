@@ -1,5 +1,6 @@
 
 #include <nodes/consensus/ConsensusNode.hpp>
+#include <amrl_common/util/util.hpp>
 
 #include <cmath>
 #include <algorithm>
@@ -15,21 +16,16 @@ ConsensusNode::ConsensusNode(void)
   _start_time(0.0),
   _time(0.0)
 {
-  std::string config_dir = _nh.param<std::string>("/config/directory", "");
-
   _num_robots      = _nh.param<int>("/consensus/num_robots", 4);
   _display_enabled = _nh.param<bool>("/display/enabled", false);
   _logging_enabled = _nh.param<bool>("/logging/enabled", false);
   _formation_label = _nh.param<std::string>("/consensus/formation", "none");
+  
+
+  _formation = std::make_shared<FormationSupervisor>(_nh, _num_robots);
 
   if(_display_enabled) {
     _display = std::make_shared<DisplayFormation>(_nh, "origin_frame", ros::this_node::getName());
-  }
-
-  _formation = std::make_shared<FormationSupervisor>(_num_robots );
-  if((!config_dir.empty()) && _formation_label != "none") {
-    std::string formation_file = config_dir + _formation_label + ".json";
-    _formation->initialize_from_json(formation_file);
   }
 
   for(size_t i = 0; i < _num_robots; ++i) {
@@ -130,6 +126,7 @@ void ConsensusNode::setup(const ros::TimerEvent&)
       r_init[i + _num_robots]   = pose[1];
       r_init[i + 2*_num_robots] = pose[2];
     }
+    
     _consensus = std::make_shared<FormationConsensus>(
       _num_robots,
       kNumStates,
@@ -153,8 +150,8 @@ void ConsensusNode::setup(const ros::TimerEvent&)
     if(_display) {
       _display_tmr = _nh.createTimer(ros::Duration(kCmdLoopPeriod_s), &ConsensusNode::display_loop_callback, this);
     }
-    _cmd_tmr     = _nh.createTimer(ros::Duration(kCmdLoopPeriod_s), &ConsensusNode::control_loop_callback, this);
-    _start_time  = ros::Time::now();
+    _cmd_tmr    = _nh.createTimer(ros::Duration(kCmdLoopPeriod_s), &ConsensusNode::control_loop_callback, this);
+    _start_time = ros::Time::now();
 
     ROS_INFO("Consensus Setup Complete");
   }

@@ -1,0 +1,13 @@
+{
+  "plan": [
+    {
+      "duration": 5.0,
+      "type": "file",
+      "filename": "line"
+    },
+    {
+      "duration": 5.0,
+      "type": "circle"
+    }
+  ]
+}

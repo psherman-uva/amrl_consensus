@@ -8,8 +8,14 @@
 
 #pragma once
 
+#include <libs/formation/Formation.hpp>
+
+#include <ros/ros.h>
 #include <Eigen/Dense>
+
 #include <vector>
+#include <memory>
+#include <map>
 
 namespace amrl {
 
@@ -17,10 +23,8 @@ class FormationSupervisor
 {
 public:
 
-  FormationSupervisor(const uint32_t num_robots);
+  FormationSupervisor(ros::NodeHandle &nh, const uint32_t num_robots);
   ~FormationSupervisor(void) = default;
-
-  void initialize_from_json(const std::string &jsonfile);
 
   Eigen::Vector3d vel_desired(double t);
   Eigen::Vector3d vel_int_desired(double t);
@@ -34,10 +38,20 @@ public:
 
 private:
 
+  void setup_formation_plan(ros::NodeHandle &nh); 
+
+
   Eigen::VectorXd _r_F;
   Eigen::VectorXd _r_F_dot;
 
+  std::vector<std::pair<double, std::unique_ptr<Formation>>> _formations;
+
   uint32_t _n;
+  
+  size_t _idx_curr;
+
+  double _full_cycle_duration = 0.0;
+
 };
 
 

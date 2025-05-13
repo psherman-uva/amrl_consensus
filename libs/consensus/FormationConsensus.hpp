@@ -11,8 +11,6 @@
 #include <libs/formation/FormationSupervisor.hpp>
 
 #include <Eigen/Dense>
-#include <libs/runge_kutta/RungeKutta.hpp>
-
 #include <memory>
 
 namespace amrl {
@@ -41,12 +39,6 @@ public:
 
   // Default destructor
   ~FormationConsensus(void) = default;
-
-  void update(
-      const Vec_t &r,
-      const Vec_t &v,
-      const double t,
-      const double dt);
 
   Vec_t xi_zeta_dot(
     const Vec_t &r, 
@@ -87,13 +79,8 @@ private:
   const double _gamma;
   const double _alpha;
 
-  static const Eigen::Matrix<double, 0, 1> kU0;
-
   /// Object that defines "desired" formation
   std::shared_ptr<FormationSupervisor> _formation;
-
-  /// ODE Solver for system
-  RungeKutta _solver;
 };
 
 }
